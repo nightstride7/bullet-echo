@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+.env.*
+.DS_Store
+# your real pipeline data — never commit it
+src/data/private*.js
+exports/
