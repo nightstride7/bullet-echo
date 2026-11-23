@@ -2,7 +2,21 @@
 
 **A local-first outreach CRM for Product Hunt launches.** Find a launch, score it, fire a personalized LinkedIn note, track the reply. No backend, no accounts, no API keys. Your pipeline never leaves your browser.
 
-> Status: **v6 — public alpha.** Built for one operator's daily workflow, now open for feedback. Tell us whether to keep it or kill it → [open an issue](../../issues).
+**[Live demo →](https://bullet-echo-silk.vercel.app)** · **[Keep or kill? Tell me →](https://github.com/nightstride7/bullet-echo/issues/1)**
+
+![Bullet Echo overview: target list, intel card for a launch, score map and streak calendar](docs/screenshots/overview.png)
+
+![DATA tab: paste assessment JSON, import or export the pipeline](docs/screenshots/data-tab.png)
+
+## Why this exists
+
+- Product Hunt launch day is the best moment to reach a maker: they're live, visible, and reading every message.
+- Tracking that outreach across spreadsheets and a dozen LinkedIn tabs falls apart within a week.
+- Bullet Echo scores each launch, keeps a personalized connection note ready to copy, and tracks replies locally, with no backend and no API keys.
+
+> Status: **v6 — public alpha.** Built for one operator's daily workflow, now open for feedback.
+>
+> Best on desktop. Mobile layout is on the roadmap.
 
 ## The loop
 
@@ -18,7 +32,7 @@ PH launch → verify → score (0–100) → FIRE or KILL → personalized note 
 ## Quick start
 
 ```bash
-git clone https://github.com/<you>/bullet-echo.git
+git clone https://github.com/nightstride7/bullet-echo.git
 cd bullet-echo
 npm install
 npm run dev        # opens http://localhost:5173
@@ -48,6 +62,7 @@ Verify launches on a PH tracker or the PH page itself — never from search snip
 - [ ] CSV import (Clay / Apollo)
 - [ ] Optional bring-your-own-key assessment
 - [ ] Multi-source feeds beyond Product Hunt
+- [ ] Mobile layout (responsive panels for phones and small tablets)
 
 ## Contributing
 

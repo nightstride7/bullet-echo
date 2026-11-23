@@ -6,3 +6,4 @@ dist
 # your real pipeline data — never commit it
 src/data/private*.js
 exports/
+.vercel

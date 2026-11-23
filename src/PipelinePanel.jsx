@@ -8,12 +8,18 @@ export default function PipelinePanel({ products, custom, onApply, onReset }) {
   const [msg, setMsg] = useState(null);
   const file = useRef(null);
 
+  const fail = (lines) => setMsg({ bad: true, lines: lines.length ? lines : ["Nothing was imported."] });
   const add = (raw, replace = false) => {
-    const r = parseProducts(raw);
-    if (!r.ok) return setMsg({ bad: true, t: r.errors.join(" · ") });
-    onApply(replace ? r.products : mergeProducts(products, r.products));
-    setMsg({ t: `${replace ? "Replaced with" : "Added"} ${r.products.length} target(s).` });
-    setText("");
+    try {
+      const r = parseProducts(raw);
+      if (!r.ok) return fail(r.errors);
+      if (!r.products.length) return fail(["No targets found in this JSON."]);
+      onApply(replace ? r.products : mergeProducts(products, r.products));
+      setMsg({ lines: [`${replace ? "Replaced with" : "Added"} ${r.products.length} target(s).`] });
+      setText("");
+    } catch (e) {
+      fail(["Import failed: " + (e && e.message ? e.message : String(e))]);
+    }
   };
   const exportJson = () => {
     const blob = new Blob([JSON.stringify({ products }, null, 2)], { type: "application/json" });
@@ -25,8 +31,10 @@ export default function PipelinePanel({ products, custom, onApply, onReset }) {
   };
   const onFile = async (e) => {
     const f = e.target.files?.[0];
-    if (f) add(await f.text(), true);
     e.target.value = "";
+    if (!f) return;
+    try { add(await f.text(), true); }
+    catch (err) { fail(["Could not read file: " + (err && err.message ? err.message : String(err))]); }
   };
 
   return (
@@ -45,7 +53,12 @@ export default function PipelinePanel({ products, custom, onApply, onReset }) {
         {custom && <button style={btn("#ff6b6b")} onClick={() => { if (confirm("Reset to the sample data? Your imported targets will be removed.")) onReset(); }}>RESET TO SAMPLE</button>}
         <input ref={file} type="file" accept="application/json,.json" onChange={onFile} style={{ display: "none" }} />
       </div>
-      {msg && <div style={{ fontSize: 9, letterSpacing: 1, color: msg.bad ? "#ff6b6b" : "#4dff7c" }}>{msg.t}</div>}
+      {msg && (
+        <div role={msg.bad ? "alert" : "status"} style={{ fontSize: 9, letterSpacing: 1, lineHeight: 1.8, color: msg.bad ? "#ff6b6b" : "#4dff7c" }}>
+          {msg.bad && msg.lines.length > 1 && <div>{msg.lines.length} problems, nothing was imported:</div>}
+          {msg.lines.map((l, i) => <div key={i}>{msg.bad && msg.lines.length > 1 ? "• " : ""}{l}</div>)}
+        </div>
+      )}
     </div>
   );
 }
