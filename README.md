@@ -29,13 +29,13 @@ Production build: `npm run build && npm run preview`.
 ## How it works
 
 Bullet Echo is a pure front-end app. Everything is stored in `localStorage`.
-Assessments are **not** generated in the app: you produce them with any LLM using [`prompts/assess.md`](prompts/assess.md), then paste the result into `src/data/` (schema in [`docs/DATA-SCHEMA.md`](docs/DATA-SCHEMA.md)). This keeps the tool free to run and key-less.
+Assessments are **not** generated in the app: you produce them with any LLM using [`prompts/assess.md`](prompts/assess.md), then paste the JSON into the **DATA** tab in the app (schema in [`docs/DATA-SCHEMA.md`](docs/DATA-SCHEMA.md)). This keeps the tool free to run and key-less.
 
 ## Make it yours
 
 1. Edit [`src/config.js`](src/config.js) with your name and pitch.
-2. Copy `src/data/sample.js` to `src/data/private.js` (git-ignored) and import it in `App.jsx`.
-3. Run the assessment prompt on each launch you verify.
+2. Run `prompts/assess.md` on each launch you verify.
+3. Open **DATA**, paste the JSON, hit **ADD TO PIPELINE**. Use **EXPORT JSON** to back up or share.
 
 ## Data rule
 
@@ -43,8 +43,8 @@ Verify launches on a PH tracker or the PH page itself — never from search snip
 
 ## Roadmap
 
-- [ ] JSON import/export of the pipeline
-- [ ] In-app assessment form (paste LLM output → card)
+- [x] JSON import/export of the pipeline
+- [x] In-app paste form for assessments (DATA tab)
 - [ ] CSV import (Clay / Apollo)
 - [ ] Optional bring-your-own-key assessment
 - [ ] Multi-source feeds beyond Product Hunt

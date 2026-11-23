@@ -19,7 +19,8 @@ async function saveStreak(s){try{await storage.set(SSK,JSON.stringify(s));}catch
 function daysSince(iso){return Math.floor((Date.now()-new Date(iso).getTime())/86400000);}
 function toDateKey(d){return d.toISOString().substring(0,10);}
 
-import { SEED, FEED_DATE } from "./data/sample.js";
+import { loadPipeline, savePipeline, resetPipeline } from "./pipeline.js";
+import PipelinePanel from "./PipelinePanel.jsx";
 import { PROFILE } from "./config.js";
 import { storage } from "./storage.js";
 
@@ -136,6 +137,8 @@ function StreakMap({ streakData }) {
 }
 
 export default function BulletEcho(){
+  const [pipe,setPipe]=useState(()=>loadPipeline());
+  const SEED=pipe.products, FEED_DATE=pipe.feedDate;
   const [items,setItems]=useState([]);
   const [started,setStarted]=useState(false);
   const [running,setRunning]=useState(false);
@@ -193,6 +196,8 @@ export default function BulletEcho(){
     });
   },[]);
 
+  useEffect(()=>{ if(started) runAnalysis(); },[pipe]); // reload targets after import
+
   const sel=selected?items.find(i=>i.id===selected):null;
   const a=sel?.assessment;
 
@@ -207,7 +212,7 @@ export default function BulletEcho(){
       status:p.assessment?(p.assessment.worthMessaging?"ready":"killed"):"crm-only"
     }));
     setTimeout(()=>{setItems(loaded);setRunning(false);},600);
-  },[]);
+  },[pipe]);
 
   const onFire=useCallback((id,as)=>{
     setItems(prev=>prev.map(i=>i.id===id?{...i,status:"fired"}:i));
@@ -235,7 +240,7 @@ export default function BulletEcho(){
     saveFL(log);
     setJustFired(true);
     setTimeout(()=>setJustFired(false),3000);
-  },[fireLog]);
+  },[fireLog,pipe]);
 
   const onKill=useCallback(id=>{
     // Remove from fire log storage — prevents ghost entries in CRM Status panel
@@ -243,7 +248,7 @@ export default function BulletEcho(){
     const log=fireLog.filter(e=>e.id!==id);
     setFireLog(log);
     saveFL(log);
-  },[fireLog]);
+  },[fireLog,pipe]);
 
   const onRecycle=useCallback((id)=>{
     // Remove from fire log storage — recycled contacts don't belong in active CRM Status
@@ -251,16 +256,16 @@ export default function BulletEcho(){
     const log=fireLog.filter(e=>e.id!==id);
     setFireLog(log);
     saveFL(log);
-  },[fireLog]);
+  },[fireLog,pipe]);
   const onQueuePost=useCallback((id,as)=>{
     const p=SEED.find(p=>p.id===id);
     const d={id:`${id}_${Date.now()}`,productId:id,productName:p.name,phUrl:p.phUrl,draft:as.linkedInAngle,dateQueued:new Date().toISOString(),status:"queued"};
     const arr=[d,...arsenal];setArsenal(arr);saveAR(arr);
-  },[arsenal]);
+  },[arsenal,pipe]);
   const onStatusChange=useCallback((id,ns)=>{
     const log=fireLog.map(e=>e.id===id?{...e,relationshipStatus:ns,statusHistory:[...(e.statusHistory||[]),{status:ns,date:new Date().toISOString()}]}:e);
     setFireLog(log);saveFL(log);
-  },[fireLog]);
+  },[fireLog,pipe]);
 
   const today=new Date();
   const dateStr=today.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}).toUpperCase();
@@ -324,13 +329,13 @@ export default function BulletEcho(){
           {/* Feed date + PH hint */}
           <div style={{flex:1,display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:8,letterSpacing:2,color:"rgba(0,212,255,0.4)",padding:"2px 8px",border:"1px solid rgba(0,212,255,0.15)"}}>{FEED_DATE}</span>
-            <span style={{fontSize:7,color:"rgba(255,160,0,0.5)",letterSpacing:1}}>LOAD ASSESSMENTS FROM <span style={{color:"#ffa000",fontWeight:700}}>src/data</span> · AIM FOR 5-7 FIRES/DAY</span>
+            <span style={{fontSize:7,color:"rgba(255,160,0,0.5)",letterSpacing:1}}>ADD TARGETS IN THE <span style={{color:"#ffa000",fontWeight:700}}>DATA</span> TAB · AIM FOR 5-7 FIRES/DAY</span>
           </div>
           {/* Nav + clock */}
           <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-            {[["LOG",fireLog.length,"log"],["ARSENAL",arsenal.filter(a=>a.status==="queued").length,"arsenal"],["SYNC","↑","sync"]].map(([l,c,k])=>(
+            {[["LOG",fireLog.length,"log"],["ARSENAL",arsenal.filter(a=>a.status==="queued").length,"arsenal"],["DATA","⇅","data"],["SYNC","↑","sync"]].map(([l,c,k])=>(
               <button key={k} onClick={()=>setView(v=>v===k?"main":k)} style={{padding:"3px 10px",fontSize:7,letterSpacing:2,border:"1px solid",borderRadius:1,cursor:"pointer",transition:"all 0.15s",fontFamily:"'Orbitron',monospace",background:view===k?"rgba(0,212,255,0.1)":"transparent",borderColor:view===k?"#00d4ff":"rgba(0,212,255,0.2)",color:view===k?"#00d4ff":"rgba(0,212,255,0.4)"}}>
-                {l} {c!=="↑"?c:""}{c==="↑"?"↑":""}
+                {l} {c==="↑"||c==="⇅"?c:c}
               </button>
             ))}
             <div style={{width:1,height:20,background:"rgba(0,212,255,0.15)"}}/>
@@ -470,6 +475,13 @@ export default function BulletEcho(){
                 </div>
               ))}
             </div>
+          )}
+
+          {/* DATA VIEW */}
+          {view==="data"&&(
+            <PipelinePanel products={SEED} custom={pipe.custom}
+              onApply={ps=>{savePipeline(ps,new Date().toISOString().slice(0,10));setPipe(loadPipeline());}}
+              onReset={()=>{resetPipeline();setPipe(loadPipeline());}}/>
           )}
 
           {/* SYNC VIEW */}

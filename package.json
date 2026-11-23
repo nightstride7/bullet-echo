@@ -1,6 +1,6 @@
 {
   "name": "bullet-echo",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "description": "Local-first Product Hunt → LinkedIn outreach CRM. Score launches, fire personalized messages, track replies. No backend, no keys.",
   "private": false,
   "license": "MIT",
