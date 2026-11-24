@@ -1,0 +1,30 @@
+# Gitleaks config for Bullet Echo (public rules).
+# Used by CI (.github/workflows/build.yml) and by .githooks/pre-commit when no
+# local config exists. Requires gitleaks >= 8.25. CI pins 8.30.1.
+# Maintainers can add private rules in a git-ignored .gitleaks.local.toml that
+# extends this file; the pre-commit hook prefers it when present.
+
+# Start from gitleaks' built-in rule set (API keys, tokens, private keys, ...).
+# Note: the built-in config ignores lockfiles (package-lock.json etc.) for all rules.
+[extend]
+useDefault = true
+
+# Real LinkedIn profile URLs mean real contacts. Sample data must stay fictional
+# and real pipeline data must stay in the browser, never in the repo.
+[[rules]]
+id = "linkedin-profile-urls"
+description = "LinkedIn profile URL (real contact data)"
+regex = '''linkedin\.com/in/[A-Za-z0-9_-]+'''
+keywords = ["linkedin.com/in/"]
+
+# Links to AI coding-session transcripts are private and must not be published.
+[[rules]]
+id = "session-links"
+description = "AI coding-session transcript link"
+regex = '''claude\.ai/code/session_[A-Za-z0-9]+'''
+keywords = ["/code/session_"]
+
+# This file contains the patterns above, so it would always flag itself.
+[[allowlists]]
+description = "Gitleaks config files"
+paths = ['''(^|/)\.gitleaks(\.local)?\.toml$''']
